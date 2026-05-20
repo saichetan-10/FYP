@@ -1,0 +1,29 @@
+FROM python:3.11-slim
+
+WORKDIR /app
+
+RUN apt-get update && apt-get install -y gcc curl && rm -rf /var/lib/apt/lists/*
+
+# Streamlit needs the full requirements-docker set + streamlit + pandas
+COPY requirements-docker.txt .
+RUN pip install --no-cache-dir -r requirements-docker.txt && \
+    pip install --no-cache-dir streamlit>=1.30.0
+
+COPY . .
+
+# Streamlit config: headless, fixed port, no CORS issues
+RUN mkdir -p /root/.streamlit && printf "\
+[server]\n\
+headless = true\n\
+port = 8501\n\
+address = 0.0.0.0\n\
+enableCORS = false\n\
+enableXsrfProtection = false\n\
+" > /root/.streamlit/config.toml
+
+EXPOSE 8501
+
+HEALTHCHECK --interval=30s --timeout=10s --start-period=30s --retries=3 \
+    CMD curl -f http://localhost:8501/_stcore/health || exit 1
+
+CMD ["streamlit", "run", "src/dashboards/streamlit_app.py"]

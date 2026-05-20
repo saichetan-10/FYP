@@ -1,0 +1,104 @@
+version: '3.9'
+
+# ─────────────────────────────────────────────────────────────────────────────
+# NL Query Engine — Full Stack
+#
+# Services:
+#   postgres   → PostgreSQL 15 (stores all 3 databases)
+#   api        → FastAPI backend (port 8000)
+#                Seeds ~2M records into postgres on FIRST run only
+#   dashboard  → Streamlit UI (port 8501)
+#
+# Usage:
+#   docker-compose up --build        # first time (build + seed data, ~5-8 min)
+#   docker-compose up                # subsequent runs (fast, data already there)
+#   docker-compose down              # stop all containers
+#   docker-compose down -v           # stop + wipe postgres volume (fresh start)
+#   docker-compose logs -f api       # stream API logs
+#
+# Access:
+#   Dashboard  → http://localhost:8501
+#   API docs   → http://localhost:8000/docs
+#   API health → http://localhost:8000/health
+# ─────────────────────────────────────────────────────────────────────────────
+
+services:
+
+  # ── PostgreSQL ──────────────────────────────────────────────────────────────
+  postgres:
+    image: postgres:15-alpine
+    container_name: nlretrieval_postgres
+    environment:
+      POSTGRES_USER: nluser
+      POSTGRES_PASSWORD: nlpassword
+      # Postgres creates this default DB; our 3 app DBs are created by main.py init
+      POSTGRES_DB: postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U nluser"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    networks:
+      - nlretrieval
+    restart: unless-stopped
+
+  # ── FastAPI Backend ─────────────────────────────────────────────────────────
+  api:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    container_name: nlretrieval_api
+    environment:
+      # These match what src/db/manager.py reads via os.getenv()
+      DB_DIALECT: postgresql
+      DB_HOST: postgres
+      DB_PORT: "5432"
+      DB_USER: nluser
+      DB_PASSWORD: nlpassword
+      DB_NAME: nlretrieval_sales
+      LOG_LEVEL: INFO
+    ports:
+      - "8000:8000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    volumes:
+      - ../logs:/app/logs
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 120s   # give time for first-run DB seed
+    networks:
+      - nlretrieval
+    restart: unless-stopped
+
+  # ── Streamlit Dashboard ─────────────────────────────────────────────────────
+  dashboard:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.streamlit
+    container_name: nlretrieval_dashboard
+    environment:
+      API_URL: http://api:8000
+    ports:
+      - "8501:8501"
+    depends_on:
+      api:
+        condition: service_healthy
+    networks:
+      - nlretrieval
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+    driver: local
+
+networks:
+  nlretrieval:
+    driver: bridge

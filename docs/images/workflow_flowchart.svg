@@ -1,0 +1,46 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="660" viewBox="0 0 960 660">
+  <style>
+    .box { fill:#ffffff; stroke:#254e6a; stroke-width:2; rx:10; }
+    .diamond { fill:#dbeafe; stroke:#254e6a; stroke-width:2; }
+    .text { font:15px Arial, sans-serif; fill:#0f172a; }
+    .title { font:20px Arial, sans-serif; font-weight:bold; fill:#0f172a; }
+    .arrow { stroke:#254e6a; stroke-width:3; fill:none; marker-end:url(#arrowhead);}  
+  </style>
+  <defs>
+    <marker id="arrowhead" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="8" markerHeight="8" orient="auto">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#254e6a" />
+    </marker>
+  </defs>
+  <rect x="20" y="20" width="920" height="620" rx="20" fill="#f8fafc" stroke="#cbd5e1" stroke-width="2" />
+  <text x="480" y="58" class="title" text-anchor="middle">Workflow / Process Flowchart</text>
+
+  <rect x="340" y="90" width="280" height="70" class="box" />
+  <text x="480" y="130" text-anchor="middle" class="text">Receive Natural Language Query</text>
+
+  <rect x="340" y="190" width="280" height="70" class="box" />
+  <text x="480" y="230" text-anchor="middle" class="text">Intent Parser Agent</text>
+  <text x="480" y="250" text-anchor="middle" class="text">Extract Entities &amp; Metrics</text>
+
+  <rect x="110" y="290" width="280" height="70" class="box" />
+  <text x="250" y="330" text-anchor="middle" class="text">Ontology Mapper Agent</text>
+  <text x="250" y="350" text-anchor="middle" class="text">Align with Schema</text>
+
+  <rect x="570" y="290" width="280" height="70" class="box" />
+  <text x="710" y="330" text-anchor="middle" class="text">Constraint Validator Agent</text>
+  <text x="710" y="350" text-anchor="middle" class="text">Apply Business Rules</text>
+
+  <rect x="340" y="390" width="280" height="70" class="box" />
+  <text x="480" y="430" text-anchor="middle" class="text">Execution Planner Agent</text>
+  <text x="480" y="450" text-anchor="middle" class="text">Build Retrieval Plan</text>
+
+  <rect x="340" y="490" width="280" height="70" class="box" />
+  <text x="480" y="530" text-anchor="middle" class="text">Result Verifier Agent</text>
+  <text x="480" y="550" text-anchor="middle" class="text">Validate Plausibility</text>
+
+  <path class="arrow" d="M 480 160 L 480 190" />
+  <path class="arrow" d="M 480 260 L 250 290" />
+  <path class="arrow" d="M 480 260 L 710 290" />
+  <path class="arrow" d="M 250 360 L 420 360" />
+  <path class="arrow" d="M 710 360 L 550 360" />
+  <path class="arrow" d="M 480 460 L 480 490" />
+</svg>

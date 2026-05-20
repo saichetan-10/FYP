@@ -1,0 +1,1026 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Semantic Drift Analysis Dashboard</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #0f4c75 0%, #3282b8 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #0f4c75 0%, #3282b8 100%);
+            color: white;
+            padding: 40px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            font-weight: 700;
+        }
+        
+        .header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+        
+        .content {
+            padding: 40px;
+        }
+        
+        .section {
+            margin-bottom: 40px;
+        }
+        
+        .section-title {
+            font-size: 1.8em;
+            color: #333;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 3px solid #0f4c75;
+        }
+        
+        .timestamp {
+            color: #666;
+            font-size: 0.9em;
+            margin-bottom: 10px;
+        }
+        
+        .snapshot-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .snapshot-card {
+            background: linear-gradient(135deg, #f5f5f5 0%, #ffffff 100%);
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            padding: 25px;
+            text-align: center;
+            transition: all 0.3s;
+        }
+        
+        .snapshot-card:hover {
+            border-color: #3282b8;
+            box-shadow: 0 5px 15px rgba(50, 130, 184, 0.2);
+            transform: translateY(-5px);
+        }
+        
+        .snapshot-label {
+            font-size: 0.85em;
+            color: #666;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 15px;
+            font-weight: 600;
+        }
+        
+        .snapshot-value {
+            font-size: 2.2em;
+            color: #3282b8;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+        
+        .confidence-badge {
+            display: inline-block;
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 0.8em;
+            font-weight: 600;
+        }
+        
+        .confidence-high {
+            background: #d4edda;
+            color: #155724;
+        }
+        
+        .confidence-moderate {
+            background: #fff3cd;
+            color: #856404;
+        }
+        
+        .confidence-low {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        
+        .alert {
+            background: #f8d7da;
+            border: 2px solid #f5c6cb;
+            color: #721c24;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 10px;
+            display: none;
+        }
+        
+        .alert.show {
+            display: block;
+        }
+        
+        .component-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .component-panel {
+            background: #f8f9fa;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            padding: 25px;
+            border-left: 5px solid #3282b8;
+        }
+        
+        .component-title {
+            font-size: 1.1em;
+            color: #333;
+            font-weight: 700;
+            margin-bottom: 20px;
+        }
+        
+        .gauge-container {
+            position: relative;
+            height: 150px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .gauge-value {
+            text-align: center;
+        }
+        
+        .gauge-percentage {
+            font-size: 2.5em;
+            color: #3282b8;
+            font-weight: 700;
+        }
+        
+        .gauge-label {
+            font-size: 0.85em;
+            color: #666;
+            margin-top: 5px;
+        }
+        
+        .progress-bar {
+            height: 30px;
+            background: #e0e0e0;
+            border-radius: 15px;
+            overflow: hidden;
+            margin-bottom: 10px;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #0f4c75 0%, #3282b8 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+            font-size: 0.85em;
+        }
+        
+        .component-details {
+            font-size: 0.85em;
+            line-height: 1.8;
+            color: #555;
+        }
+        
+        .detail-item {
+            margin-bottom: 12px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        
+        .detail-item:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+            padding-bottom: 0;
+        }
+        
+        .detail-label {
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 5px;
+        }
+        
+        .detail-value {
+            color: #666;
+        }
+        
+        .chart-section {
+            background: #f8f9fa;
+            padding: 25px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+        }
+        
+        .chart-title {
+            font-size: 1.1em;
+            color: #333;
+            font-weight: 700;
+            margin-bottom: 20px;
+        }
+        
+        .chart-container {
+            position: relative;
+            height: 300px;
+        }
+        
+        .provenance-section {
+            background: #f8f9fa;
+            padding: 25px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+        }
+        
+        .query-text {
+            background: white;
+            border: 2px solid #e0e0e0;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-style: italic;
+            color: #555;
+        }
+        
+        .sql-output {
+            background: #1e1e1e;
+            color: #00ff00;
+            padding: 15px;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.85em;
+            overflow-x: auto;
+            margin-bottom: 20px;
+        }
+        
+        .entities-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .entity-tag {
+            background: #e8f4f8;
+            border: 1px solid #3282b8;
+            color: #0f4c75;
+            padding: 10px 15px;
+            border-radius: 6px;
+            text-align: center;
+            font-size: 0.85em;
+            font-weight: 600;
+        }
+        
+        .explanation-box {
+            background: #e8f4f8;
+            border-left: 4px solid #3282b8;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            line-height: 1.8;
+            color: #0f4c75;
+        }
+        
+        .performance-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .perf-card {
+            background: linear-gradient(135deg, #0f4c75 0%, #3282b8 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+        }
+        
+        .perf-label {
+            font-size: 0.85em;
+            opacity: 0.9;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        .perf-value {
+            font-size: 1.8em;
+            font-weight: 700;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.9em;
+        }
+        
+        table thead {
+            background: #0f4c75;
+            color: white;
+        }
+        
+        table th, table td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        
+        table tbody tr:hover {
+            background: #f8f9fa;
+        }
+        
+        @media (max-width: 768px) {
+            .component-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .header h1 {
+                font-size: 1.8em;
+            }
+            
+            .content {
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Semantic Drift Analysis Dashboard</h1>
+            <p>Monitoring query drift, validation, and output plausibility</p>
+        </div>
+        
+        <div class="content">
+            <!-- Drift Snapshot Section -->
+            <div class="section">
+                <div class="timestamp">Last updated: May 9, 2024 - 14:23:45 UTC</div>
+                <h2 class="section-title">Drift Snapshot</h2>
+                
+                <div class="snapshot-cards">
+                    <div class="snapshot-card">
+                        <div class="snapshot-label">Overall Semantic Drift</div>
+                        <div class="snapshot-value" style="color: #28a745;">0.08</div>
+                        <div style="font-size: 0.8em; color: #666;">Below Threshold (< 0.15)</div>
+                    </div>
+                    
+                    <div class="snapshot-card">
+                        <div class="snapshot-label">Intent Alignment</div>
+                        <div class="snapshot-value">94%</div>
+                        <span class="confidence-badge confidence-high">✓ High</span>
+                    </div>
+                    
+                    <div class="snapshot-card">
+                        <div class="snapshot-label">Constraint Adherence</div>
+                        <div class="snapshot-value">100%</div>
+                        <span class="confidence-badge confidence-high">✓ High</span>
+                    </div>
+                    
+                    <div class="snapshot-card">
+                        <div class="snapshot-label">Result Plausibility</div>
+                        <div class="snapshot-value">96%</div>
+                        <span class="confidence-badge confidence-high">✓ High</span>
+                    </div>
+                </div>
+                
+                <div style="text-align: center; margin-top: 20px;">
+                    <span class="confidence-badge confidence-high" style="font-size: 1em; padding: 10px 20px;">
+                        ✓ Overall Confidence: HIGH (95%)
+                    </span>
+                </div>
+            </div>
+            
+            <!-- Component Breakdown Section -->
+            <div class="section">
+                <h2 class="section-title">Component Breakdown</h2>
+                
+                <div class="component-grid">
+                    <!-- Intent Alignment -->
+                    <div class="component-panel">
+                        <div class="component-title">Intent Alignment</div>
+                        
+                        <div class="gauge-container">
+                            <div class="gauge-value">
+                                <div class="gauge-percentage">94%</div>
+                                <div class="gauge-label">Similarity</div>
+                            </div>
+                        </div>
+                        
+                        <div class="progress-bar">
+                            <div class="progress-fill" style="width: 94%;">94%</div>
+                        </div>
+                        
+                        <div class="component-details">
+                            <div class="detail-item">
+                                <div class="detail-label">Confidence Interval</div>
+                                <div class="detail-value">[0.91, 0.97]</div>
+                            </div>
+                            <div class="detail-item">
+                                <div class="detail-label">Top Matched Ontology Paths</div>
+                                <div class="detail-value">
+                                    • products.category<br>
+                                    • invoices.amount<br>
+                                    • orders.created_at
+                                </div>
+                            </div>
+                            <div class="detail-item">
+                                <div class="detail-label">Ambiguous Mappings</div>
+                                <div class="detail-value">None detected</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Constraint Adherence -->
+                    <div class="component-panel">
+                        <div class="component-title">Constraint Adherence</div>
+                        
+                        <div class="gauge-container">
+                            <div class="gauge-value">
+                                <div class="gauge-percentage">100%</div>
+                                <div class="gauge-label">Satisfied</div>
+                            </div>
+                        </div>
+                        
+                        <div class="progress-bar">
+                            <div class="progress-fill" style="width: 100%;">100%</div>
+                        </div>
+                        
+                        <div class="component-details">
+                            <div class="detail-item">
+                                <div class="detail-label">Total Constraints Applied</div>
+                                <div class="detail-value">8 rules</div>
+                            </div>
+                            <div class="detail-item">
+                                <div class="detail-label">Constraints Satisfied</div>
+                                <div class="detail-value">8 / 8 ✓</div>
+                            </div>
+                            <div class="detail-item">
+                                <div class="detail-label">Constraint Types</div>
+                                <div class="detail-value">
+                                    • Privacy Rules<br>
+                                    • Aggregation Rules<br>
+                                    • Date Constraints
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Result Plausibility -->
+                    <div class="component-panel">
+                        <div class="component-title">Result Plausibility</div>
+                        
+                        <div class="gauge-container">
+                            <div class="gauge-value">
+                                <div class="gauge-percentage">96%</div>
+                                <div class="gauge-label">Plausible</div>
+                            </div>
+                        </div>
+                        
+                        <div class="progress-bar">
+                            <div class="progress-fill" style="width: 96%;">96%</div>
+                        </div>
+                        
+                        <div class="component-details">
+                            <div class="detail-item">
+                                <div class="detail-label">Z-Score Range</div>
+                                <div class="detail-value">[-1.2, 2.1]</div>
+                            </div>
+                            <div class="detail-item">
+                                <div class="detail-label">Historical Baseline</div>
+                                <div class="detail-value">Within 95% CI ✓</div>
+                            </div>
+                            <div class="detail-item">
+                                <div class="detail-label">Anomaly Flags</div>
+                                <div class="detail-value">None detected</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Drift History and Trends -->
+            <div class="section">
+                <h2 class="section-title">Drift History & Trends</h2>
+                
+                <div class="chart-section">
+                    <div class="chart-title">Drift Score Progression Over Recent Queries</div>
+                    <div class="chart-container">
+                        <canvas id="driftTrendChart"></canvas>
+                    </div>
+                </div>
+                
+                <div class="chart-section">
+                    <div class="chart-title">Component Scores Comparison (Last 10 Queries)</div>
+                    <div class="chart-container">
+                        <canvas id="componentComparisonChart"></canvas>
+                    </div>
+                </div>
+                
+                <h3 style="font-size: 1.2em; color: #333; margin: 30px 0 20px 0; border-bottom: 2px solid #0f4c75; padding-bottom: 10px;">Recent Query History</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Query ID</th>
+                            <th>Query Summary</th>
+                            <th>Drift Score</th>
+                            <th>Confidence</th>
+                            <th>Status</th>
+                            <th>Timestamp</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Q-20240509-0847</td>
+                            <td>Revenue by product category Q1 2024</td>
+                            <td><strong style="color: #28a745;">0.08</strong></td>
+                            <td>95%</td>
+                            <td><span style="background: #d4edda; color: #155724; padding: 5px 10px; border-radius: 4px;">✓ Completed</span></td>
+                            <td>14:23:45</td>
+                        </tr>
+                        <tr>
+                            <td>Q-20240509-0842</td>
+                            <td>Customer count by region</td>
+                            <td><strong style="color: #28a745;">0.11</strong></td>
+                            <td>92%</td>
+                            <td><span style="background: #d4edda; color: #155724; padding: 5px 10px; border-radius: 4px;">✓ Completed</span></td>
+                            <td>14:18:22</td>
+                        </tr>
+                        <tr>
+                            <td>Q-20240509-0835</td>
+                            <td>Top 5 products by sales</td>
+                            <td><strong style="color: #28a745;">0.09</strong></td>
+                            <td>94%</td>
+                            <td><span style="background: #d4edda; color: #155724; padding: 5px 10px; border-radius: 4px;">✓ Completed</span></td>
+                            <td>14:10:15</td>
+                        </tr>
+                        <tr>
+                            <td>Q-20240509-0828</td>
+                            <td>Monthly revenue trend analysis</td>
+                            <td><strong style="color: #ffc107;">0.16</strong></td>
+                            <td>87%</td>
+                            <td><span style="background: #fff3cd; color: #856404; padding: 5px 10px; border-radius: 4px;">⚠ Review</span></td>
+                            <td>14:01:30</td>
+                        </tr>
+                        <tr>
+                            <td>Q-20240509-0820</td>
+                            <td>Customer churn prediction</td>
+                            <td><strong style="color: #28a745;">0.12</strong></td>
+                            <td>91%</td>
+                            <td><span style="background: #d4edda; color: #155724; padding: 5px 10px; border-radius: 4px;">✓ Completed</span></td>
+                            <td>13:52:45</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            
+            <!-- Query Provenance Section -->
+            <div class="section">
+                <h2 class="section-title">Query Provenance & Explanation</h2>
+                
+                <div class="provenance-section">
+                    <h3 style="font-size: 1.1em; color: #333; margin-bottom: 15px;">Original Query</h3>
+                    <div class="query-text">
+                        "Show me total revenue by product category for Q1 2024"
+                    </div>
+                    
+                    <h3 style="font-size: 1.1em; color: #333; margin-bottom: 15px; margin-top: 25px;">Executed SQL</h3>
+                    <div class="sql-output">SELECT p.category, SUM(i.amount) as total_revenue
+FROM products p
+INNER JOIN orders o ON p.product_id = o.product_id
+INNER JOIN invoices i ON o.order_id = i.order_id
+WHERE o.created_at BETWEEN '2024-01-01' AND '2024-03-31'
+GROUP BY p.category
+ORDER BY total_revenue DESC;</div>
+                    
+                    <h3 style="font-size: 1.1em; color: #333; margin-bottom: 15px; margin-top: 25px;">Extracted Entities</h3>
+                    <div class="entities-grid">
+                        <div class="entity-tag">revenue</div>
+                        <div class="entity-tag">product_category</div>
+                        <div class="entity-tag">Q1 2024</div>
+                        <div class="entity-tag">SUM aggregation</div>
+                        <div class="entity-tag">GROUP BY</div>
+                    </div>
+                    
+                    <h3 style="font-size: 1.1em; color: #333; margin-bottom: 15px; margin-top: 25px;">Applied Business Rules</h3>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px;">
+                        <div style="background: white; border: 1px solid #e0e0e0; padding: 12px; border-radius: 6px;">
+                            <div style="font-weight: 600; color: #0f4c75; margin-bottom: 5px;">Data Privacy Rule</div>
+                            <div style="font-size: 0.85em; color: #666;">Exclude customer PII from results</div>
+                        </div>
+                        <div style="background: white; border: 1px solid #e0e0e0; padding: 12px; border-radius: 6px;">
+                            <div style="font-weight: 600; color: #0f4c75; margin-bottom: 5px;">Aggregation Rule</div>
+                            <div style="font-size: 0.85em; color: #666;">Use standard financial aggregations</div>
+                        </div>
+                        <div style="background: white; border: 1px solid #e0e0e0; padding: 12px; border-radius: 6px;">
+                            <div style="font-weight: 600; color: #0f4c75; margin-bottom: 5px;">Time Constraint</div>
+                            <div style="font-size: 0.85em; color: #666;">Limit to Q1 2024 date range</div>
+                        </div>
+                    </div>
+                    
+                    <h3 style="font-size: 1.1em; color: #333; margin-bottom: 15px; margin-top: 25px;">Why This Answer?</h3>
+                    <div class="explanation-box">
+                        <strong>Query Intent Mapping:</strong> The natural language query requested revenue totals grouped by product category for Q1 2024. The system interpreted "total revenue" as a SUM aggregation on invoice amounts and correctly identified the temporal constraint (Q1 2024 = Jan-Mar 2024).
+                        <br><br>
+                        <strong>Schema Resolution:</strong> The system resolved the entities to their corresponding database tables (products.category, invoices.amount) and determined the proper join path through orders as the bridge table.
+                        <br><br>
+                        <strong>Constraint Application:</strong> 8 business rules were checked and all passed, ensuring compliance with data privacy policies, aggregation standards, and temporal constraints.
+                        <br><br>
+                        <strong>Result Validation:</strong> The returned 8 rows (product categories with revenue totals) fall within expected ranges and show realistic distributions consistent with historical data patterns.
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Performance and Reliability Section -->
+            <div class="section">
+                <h2 class="section-title">Performance & Reliability Metrics</h2>
+                
+                <div class="performance-grid">
+                    <div class="perf-card">
+                        <div class="perf-label">Avg Query Time</div>
+                        <div class="perf-value">234ms</div>
+                    </div>
+                    <div class="perf-card">
+                        <div class="perf-label">Success Rate</div>
+                        <div class="perf-value">99.2%</div>
+                    </div>
+                    <div class="perf-card">
+                        <div class="perf-label">System Health</div>
+                        <div class="perf-value">✓ Excellent</div>
+                    </div>
+                    <div class="perf-card">
+                        <div class="perf-label">Avg Drift Score</div>
+                        <div class="perf-value">0.11</div>
+                    </div>
+                </div>
+                
+                <div class="chart-section" style="margin-top: 30px;">
+                    <div class="chart-title">Query Execution Time Distribution</div>
+                    <div class="chart-container">
+                        <canvas id="executionTimeChart"></canvas>
+                    </div>
+                </div>
+                
+                <div style="background: #f8f9fa; padding: 25px; border-radius: 10px; margin-top: 30px;">
+                    <h3 style="font-size: 1.1em; color: #333; margin-bottom: 15px;">System Health Status</h3>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px;">
+                        <div>
+                            <div style="font-weight: 600; color: #0f4c75; margin-bottom: 10px;">🔧 Database Connectivity</div>
+                            <div style="background: white; padding: 12px; border-radius: 6px; border-left: 4px solid #28a745;">
+                                <strong style="color: #28a745;">✓ Operational</strong>
+                                <div style="font-size: 0.85em; color: #666; margin-top: 5px;">Response time: 45ms</div>
+                            </div>
+                        </div>
+                        <div>
+                            <div style="font-weight: 600; color: #0f4c75; margin-bottom: 10px;">🧠 ML Pipeline</div>
+                            <div style="background: white; padding: 12px; border-radius: 6px; border-left: 4px solid #28a745;">
+                                <strong style="color: #28a745;">✓ Operational</strong>
+                                <div style="font-size: 0.85em; color: #666; margin-top: 5px;">Model latency: 89ms</div>
+                            </div>
+                        </div>
+                        <div>
+                            <div style="font-weight: 600; color: #0f4c75; margin-bottom: 10px;">📊 Vector Store</div>
+                            <div style="background: white; padding: 12px; border-radius: 6px; border-left: 4px solid #28a745;">
+                                <strong style="color: #28a745;">✓ Operational</strong>
+                                <div style="font-size: 0.85em; color: #666; margin-top: 5px;">Embedding lookup: 32ms</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // Drift Trend Chart
+        const driftCtx = document.getElementById('driftTrendChart').getContext('2d');
+        new Chart(driftCtx, {
+            type: 'line',
+            data: {
+                labels: ['Query 1', 'Query 2', 'Query 3', 'Query 4', 'Query 5', 'Current'],
+                datasets: [
+                    {
+                        label: 'Semantic Drift Score',
+                        data: [0.19, 0.15, 0.09, 0.16, 0.12, 0.08],
+                        borderColor: '#3282b8',
+                        backgroundColor: 'rgba(50, 130, 184, 0.1)',
+                        borderWidth: 3,
+                        fill: true,
+                        tension: 0.4,
+                        pointRadius: 5,
+                        pointBackgroundColor: '#3282b8',
+                        pointBorderColor: '#fff',
+                        pointBorderWidth: 2
+                    },
+                    {
+                        label: 'Drift Threshold (0.15)',
+                        data: [0.15, 0.15, 0.15, 0.15, 0.15, 0.15],
+                        borderColor: '#dc3545',
+                        borderDash: [5, 5],
+                        borderWidth: 2,
+                        fill: false,
+                        pointRadius: 0
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        labels: {
+                            font: { size: 12, weight: 'bold' },
+                            padding: 15
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        max: 0.25,
+                        ticks: { font: { size: 11 } }
+                    },
+                    x: {
+                        ticks: { font: { size: 11 } }
+                    }
+                }
+            }
+        });
+        
+        // Component Comparison Chart
+        const compCtx = document.getElementById('componentComparisonChart').getContext('2d');
+        new Chart(compCtx, {
+            type: 'radar',
+            data: {
+                labels: ['Intent Alignment', 'Constraint Adherence', 'Result Plausibility', 'Temporal Accuracy', 'Schema Validation'],
+                datasets: [
+                    {
+                        label: 'Current Query',
+                        data: [94, 100, 96, 98, 92],
+                        borderColor: '#3282b8',
+                        backgroundColor: 'rgba(50, 130, 184, 0.2)',
+                        borderWidth: 2,
+                        pointBackgroundColor: '#3282b8',
+                        pointBorderColor: '#fff',
+                        pointBorderWidth: 2
+                    },
+                    {
+                        label: 'Average (Last 10)',
+                        data: [91, 97, 93, 95, 89],
+                        borderColor: '#6c757d',
+                        backgroundColor: 'rgba(108, 117, 125, 0.1)',
+                        borderWidth: 2,
+                        pointBackgroundColor: '#6c757d',
+                        pointBorderColor: '#fff',
+                        pointBorderWidth: 2,
+                        borderDash: [5, 5]
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    r: {
+                        beginAtZero: true,
+                        max: 100,
+                        ticks: { font: { size: 11 } }
+                    }
+                },
+                plugins: {
+                    legend: {
+                        labels: {
+                            font: { size: 12, weight: 'bold' },
+                            padding: 15
+                        }
+                    }
+                }
+            }
+        });
+        
+        // Execution Time Distribution Chart
+        const execCtx = document.getElementById('executionTimeChart').getContext('2d');
+        new Chart(execCtx, {
+            type: 'bar',
+            data: {
+                labels: ['<100ms', '100-200ms', '200-300ms', '300-400ms', '400-500ms', '>500ms'],
+                datasets: [
+                    {
+                        label: 'Number of Queries',
+                        data: [45, 128, 156, 89, 32, 12],
+                        backgroundColor: [
+                            '#28a745',
+                            '#3282b8',
+                            '#3282b8',
+                            '#ffc107',
+                            '#ff9800',
+                            '#dc3545'
+                        ],
+                        borderRadius: 5
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                indexAxis: 'y',
+                plugins: {
+                    legend: {
+                        labels: { font: { size: 12, weight: 'bold' } }
+                    }
+                },
+                scales: {
+                    x: {
+                        ticks: { font: { size: 11 } }
+                    },
+                    y: {
+                        ticks: { font: { size: 11 } }
+                    }
+                }
+            }
+        });
+    </script>
+
+    <!-- ═══════════════════════════════════════════════════════════════════ -->
+    <!-- LIVE STATUS SECTION                                                 -->
+    <!-- ═══════════════════════════════════════════════════════════════════ -->
+    <style>
+        .live-section {
+            margin: 40px 40px 0;
+            padding: 30px;
+            background: #f0f6ff;
+            border-radius: 12px;
+            border: 2px solid #3282b8;
+        }
+        .live-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+        .live-indicator {
+            width: 14px; height: 14px;
+            border-radius: 50%;
+            background: #28a745;
+            animation: pulse 1.4s infinite;
+            flex-shrink: 0;
+        }
+        .live-indicator.offline { background: #dc3545; animation: none; }
+        @keyframes pulse {
+            0%,100% { opacity: 1; transform: scale(1); }
+            50%      { opacity: 0.4; transform: scale(1.3); }
+        }
+        .live-title { font-size: 1.4em; font-weight: 700; color: #0f4c75; }
+        .live-badge {
+            font-size: 0.75em; font-weight: 700; letter-spacing: 1px;
+            color: #28a745; border: 2px solid #28a745;
+            padding: 2px 8px; border-radius: 20px;
+        }
+        .live-badge.offline { color: #dc3545; border-color: #dc3545; }
+        .kpi-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+            gap: 16px; margin-bottom: 24px;
+        }
+        .kpi-card {
+            background: white; border-radius: 10px;
+            padding: 18px; text-align: center;
+            border: 1px solid #d0e4f5;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.06);
+        }
+        .kpi-label { font-size: 0.78em; color: #666; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; }
+        .kpi-value { font-size: 1.7em; font-weight: 700; color: #0f4c75; }
+        .recent-table { width: 100%; border-collapse: collapse; font-size: 0.9em; }
+        .recent-table th { background: #0f4c75; color: white; padding: 8px 12px; text-align: left; }
+        .recent-table td { padding: 7px 12px; border-bottom: 1px solid #e8f0fa; }
+        .recent-table tr:hover td { background: #f0f6ff; }
+        .drift-low    { color: #28a745; font-weight: 600; }
+        .drift-medium { color: #ffc107; font-weight: 600; }
+        .drift-high   { color: #dc3545; font-weight: 600; }
+    </style>
+
+    <div class="live-section">
+        <div class="live-header">
+            <div class="live-indicator" id="liveIndicator"></div>
+            <span class="live-title">Live Pipeline Status</span>
+            <span class="live-badge" id="liveBadge">● LIVE</span>
+        </div>
+
+        <div class="kpi-row">
+            <div class="kpi-card">
+                <div class="kpi-label">Total Queries</div>
+                <div class="kpi-value" id="kpiTotal">—</div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-label">Avg Drift</div>
+                <div class="kpi-value" id="kpiDrift">—</div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-label">Convergence Rate</div>
+                <div class="kpi-value" id="kpiConv">—</div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-label">Queries / Hour</div>
+                <div class="kpi-value" id="kpiHour">—</div>
+            </div>
+        </div>
+
+        <h3 style="margin-bottom:12px;color:#0f4c75">Recent Queries</h3>
+        <div style="overflow-x:auto">
+            <table class="recent-table">
+                <thead>
+                    <tr>
+                        <th>Query</th>
+                        <th>Drift</th>
+                        <th>Converged</th>
+                        <th>Status</th>
+                        <th>Time (ms)</th>
+                        <th>Timestamp</th>
+                    </tr>
+                </thead>
+                <tbody id="recentRows">
+                    <tr><td colspan="6" style="text-align:center;color:#999">Waiting for data…</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        const API = 'http://localhost:8000';
+        function driftClass(d) {
+            if (d < 0.10) return 'drift-low';
+            if (d < 0.15) return 'drift-medium';
+            return 'drift-high';
+        }
+        async function fetchLiveStats() {
+            const ind   = document.getElementById('liveIndicator');
+            const badge = document.getElementById('liveBadge');
+            try {
+                const res  = await fetch(API + '/live');
+                const data = await res.json();
+                document.getElementById('kpiTotal').textContent = data.total_queries ?? '—';
+                document.getElementById('kpiDrift').textContent = data.avg_drift_score != null ? data.avg_drift_score.toFixed(4) : '—';
+                document.getElementById('kpiConv').textContent  = data.convergence_rate != null ? (data.convergence_rate * 100).toFixed(1) + '%' : '—';
+                document.getElementById('kpiHour').textContent  = data.queries_last_hour ?? '—';
+                const tbody = document.getElementById('recentRows');
+                const rows  = data.recent_queries || [];
+                if (rows.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:#999">No queries yet</td></tr>';
+                } else {
+                    tbody.innerHTML = rows.map(q => {
+                        const cls = driftClass(q.drift || 0);
+                        return '<tr>' +
+                            '<td title="' + (q.user_query||'') + '">' + (q.user_query||'').substring(0,50) + '</td>' +
+                            '<td class="' + cls + '">' + (q.drift||0).toFixed(4) + '</td>' +
+                            '<td>' + (q.converged ? '✓' : '✗') + '</td>' +
+                            '<td>' + (q.status||'') + '</td>' +
+                            '<td>' + (q.execution_ms||0) + '</td>' +
+                            '<td>' + (q.timestamp||'').substring(0,19) + '</td>' +
+                            '</tr>';
+                    }).join('');
+                }
+                ind.classList.remove('offline');
+                badge.classList.remove('offline');
+                badge.textContent = '● LIVE';
+            } catch (e) {
+                ind.classList.add('offline');
+                badge.classList.add('offline');
+                badge.textContent = '○ OFFLINE';
+            }
+        }
+        fetchLiveStats();
+        setInterval(fetchLiveStats, 5000);
+    </script>
+</body>
+</html>
