@@ -1,10 +1,8 @@
 # Environment & secrets
-.env
 .env.local
 .env.*.local
 
 # Python
-__pycache__/
 *.py[cod]
 *.pyo
 *.pyd
@@ -12,9 +10,7 @@ __pycache__/
 *.egg-info/
 dist/
 build/
-.venv/
 venv/
-venv_new/
 env/
 
 # IDEs
@@ -23,12 +19,8 @@ env/
 *.swp
 *.swo
 
-# SQLite databases (local dev data)
-*.db
-
-# Logs
-logs/
-*.log
+# SQLite databases — sales.db excluded (273MB, exceeds GitHub 100MB limit)
+sales.db
 
 # macOS
 .DS_Store
