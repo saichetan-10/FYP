@@ -9,6 +9,7 @@ Agents:
 5. ResultVerifierAgent: Post-query validation and anomaly detection
 """
 
+import os
 from typing import Dict, List, Any, Optional, Tuple
 from dataclasses import dataclass, field
 from datetime import datetime
@@ -382,16 +383,25 @@ class IntentParserAgent:
     def __init__(self, ontology: BusinessOntology = None):
         self.ontology = ontology
 
-        # 8 entity patterns
+        # entity patterns
         self.entity_patterns = {
-            "customer":  r"\b(customers?|clients?|buyers?|accounts?|users?)\b",
-            "product":   r"\b(products?|items?|skus?|goods?)\b",
-            "order":     r"\b(orders?|purchases?|checkouts?)\b",
-            "invoice":   r"\b(invoices?|bills?|receipts?)\b",
-            "supplier":  r"\b(suppliers?|vendors?|manufacturers?)\b",
-            "employee":  r"\b(employees?|sales\s+reps?|agents?)\b",
-            "category":  r"\b(electronics|clothing|apparel|sports|books|food|health|beauty|toys|furniture)\b",
-            "tier":      r"\b(bronze|silver|gold|platinum|enterprise|vip|premium)\b",
+            "customer":          r"\b(customers?|clients?|buyers?|accounts?|users?)\b",
+            "product":           r"\b(products?|items?|skus?|goods?|merchandise)\b",
+            "order":             r"\b(orders?|purchases?|checkouts?)\b",
+            "invoice":           r"\b(invoices?|bills?|receipts?)\b",
+            "supplier":          r"\b(suppliers?|vendors?|manufacturers?)\b",
+            "employee":          r"\b(employees?|staff|workers?|sales\s+reps?|agents?|headcount)\b",
+            "transaction":       r"\b(transactions?|payments?|charges?|transfers?|settlements?)\b",
+            "salary":            r"\b(salar(?:y|ies)|compensation|pay(?:roll)?|wages?|remuneration|earnings)\b",
+            "department":        r"\b(departments?|teams?|divisions?|business\s+units?)\b",
+            "leave":             r"\b(leave|absence|time\s+off|vacation|pto)\b",
+            "shipment":          r"\b(shipments?|deliveries|delivery|shipping|parcels?)\b",
+            "stock":             r"\b(stock|inventory|warehouse|reorder)\b",
+            "campaign":          r"\b(campaigns?|marketing|promotions?|ad\s+spend)\b",
+            "account":           r"\b(accounts?|ledger|budget|expense|forecast)\b",
+            "performance":       r"\b(performance|appraisal|review\s+score)\b",
+            "category":          r"\b(electronics|clothing|apparel|sports|books|food|health|beauty|toys|furniture)\b",
+            "tier":              r"\b(bronze|silver|gold|platinum|enterprise|vip|premium)\b",
         }
 
         # 12 metric patterns
@@ -755,16 +765,23 @@ class ConstraintValidatorAgent:
         applicable_rules = self.ontology.get_applicable_constraints(entity_ids)
         context = {"prev_drift": state.context.get("prev_drift")}
 
+        # Deduplicate by rule_id so JSON rules don't repeat
+        seen_ids: set = set()
         constraints = []
         all_satisfied = True
 
         for rule in applicable_rules:
+            if rule.rule_id in seen_ids:
+                continue
+            seen_ids.add(rule.rule_id)
+
             is_satisfied = _evaluate_constraint(rule.rule_type, state.intent, context)
             constraint = {
-                "type": rule.rule_type,
+                "rule_id":    rule.rule_id,
+                "type":       rule.rule_type,
                 "description": rule.description,
                 "is_satisfied": is_satisfied,
-                "severity": rule.severity,
+                "severity":   rule.severity,
             }
             constraints.append(constraint)
             if not is_satisfied and rule.severity == "REQUIRED":
@@ -772,13 +789,20 @@ class ConstraintValidatorAgent:
 
         state.constraints = constraints
         state.all_constraints_satisfied = all_satisfied
+
+        satisfied_n = sum(1 for c in constraints if c["is_satisfied"])
+        violated = [c for c in constraints if not c["is_satisfied"]]
+
         state.add_trace(
             AgentType.CONSTRAINT_VALIDATOR,
             "Validated constraints",
             {
                 "total_constraints": len(constraints),
-                "satisfied": sum(1 for c in constraints if c["is_satisfied"]),
+                "satisfied": satisfied_n,
+                "violated": len(violated),
                 "all_satisfied": all_satisfied,
+                "violated_rules": [c["rule_id"] for c in violated[:5]],
+                "sample_rules": [c["rule_id"] for c in constraints[:8]],
             },
             include_state_snapshot=True,
         )
@@ -912,13 +936,15 @@ class ResultVerifierAgent:
             columns = []
             execution_time_ms = 0.0
 
+        plausibility = 1.0 if result_rows else 0.0
+
         results = QueryResults(
             rows=result_rows,
             row_count=len(result_rows),
             columns=columns,
             execution_time_ms=execution_time_ms,
             query_hash="",
-            plausibility_score=1.0,
+            plausibility_score=plausibility,
         )
 
         state.results = results
@@ -929,6 +955,8 @@ class ResultVerifierAgent:
                 "result_count": len(result_rows),
                 "source": "database" if db_rows is not None else "empty",
                 "columns": columns,
+                "plausibility_score": plausibility,
+                "sample_row": result_rows[0].data if result_rows else {},
             },
             include_state_snapshot=True,
         )
@@ -955,11 +983,33 @@ class AgentPipeline:
         if db_manager and hasattr(db_manager, "config"):
             dialect = getattr(db_manager.config, "dialect", "sqlite")
 
-        self.intent_parser = IntentParserAgent(ontology)
-        self.ontology_mapper = OntologyMapperAgent(ontology)
-        self.constraint_validator = ConstraintValidatorAgent(ontology)
-        self.execution_planner = ExecutionPlannerAgent(ontology, dialect=dialect)
-        self.result_verifier = ResultVerifierAgent(ontology)
+        import shutil
+        claude_bin = os.getenv("CLAUDE_BIN", "claude")
+        use_ai = bool(os.getenv("ANTHROPIC_API_KEY")) or bool(shutil.which(claude_bin))
+        if use_ai:
+            try:
+                from src.agents.claude_agents import (
+                    ClaudeExecutionPlanner, ClaudeResultVerifier,
+                )
+                # Only SQL generation + result explanation use Claude (fast: 2 CLI calls).
+                # Intent parsing, ontology mapping, and constraint validation stay as
+                # regex — they're instant and accurate enough for structured queries.
+                self.intent_parser        = IntentParserAgent(ontology)
+                self.ontology_mapper      = OntologyMapperAgent(ontology)
+                self.constraint_validator = ConstraintValidatorAgent(ontology)
+                self.execution_planner    = ClaudeExecutionPlanner(ontology, dialect=dialect, db_manager=db_manager)
+                self.result_verifier      = ClaudeResultVerifier(ontology)
+            except Exception:
+                use_ai = False
+
+        if not use_ai:
+            self.intent_parser        = IntentParserAgent(ontology)
+            self.ontology_mapper      = OntologyMapperAgent(ontology)
+            self.constraint_validator = ConstraintValidatorAgent(ontology)
+            self.execution_planner    = ExecutionPlannerAgent(ontology, dialect=dialect)
+            self.result_verifier      = ResultVerifierAgent(ontology)
+
+        self.ai_powered = use_ai
         self.drift_metric = SemanticDriftMetric()
 
     def process_query(

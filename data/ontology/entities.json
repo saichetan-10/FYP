@@ -1,0 +1,693 @@
+[
+  {
+    "entity_id": "CUSTOMER",
+    "database": "sales",
+    "name": "Customer",
+    "description": "Individual or organization that purchases products or services",
+    "table_name": "customers",
+    "attributes": {
+      "customer_id": "VARCHAR", "name": "VARCHAR", "email": "VARCHAR",
+      "region": "VARCHAR", "department": "VARCHAR", "created_date": "DATETIME",
+      "total_spent": "DECIMAL", "order_count": "INTEGER",
+      "last_order_date": "DATETIME", "customer_tier": "VARCHAR"
+    },
+    "primary_key": "customer_id",
+    "natural_language_aliases": ["client", "buyer", "account", "customer", "purchaser", "consumer", "user", "patron"]
+  },
+  {
+    "entity_id": "PRODUCT",
+    "database": "sales",
+    "name": "Product",
+    "description": "Item available for sale in the catalog",
+    "table_name": "products",
+    "attributes": {
+      "product_id": "VARCHAR", "name": "VARCHAR", "category": "VARCHAR",
+      "price": "DECIMAL", "cost": "DECIMAL", "description": "TEXT",
+      "stock_quantity": "INTEGER", "reorder_level": "INTEGER",
+      "supplier_id": "VARCHAR", "created_date": "DATETIME", "is_active": "BOOLEAN"
+    },
+    "primary_key": "product_id",
+    "natural_language_aliases": ["item", "product", "sku", "good", "merchandise", "listing", "offering", "article"]
+  },
+  {
+    "entity_id": "ORDER",
+    "database": "sales",
+    "name": "Order",
+    "description": "Customer purchase order record",
+    "table_name": "orders",
+    "attributes": {
+      "order_id": "VARCHAR", "customer_id": "VARCHAR", "order_date": "DATETIME",
+      "total_amount": "DECIMAL", "item_count": "INTEGER", "status": "VARCHAR",
+      "shipping_address": "VARCHAR", "shipping_cost": "DECIMAL", "tax_amount": "DECIMAL"
+    },
+    "primary_key": "order_id",
+    "natural_language_aliases": ["order", "purchase", "transaction", "sale", "checkout", "booking", "request"]
+  },
+  {
+    "entity_id": "INVOICE",
+    "database": "sales",
+    "name": "Invoice",
+    "description": "Billing document generated for an order",
+    "table_name": "invoices",
+    "attributes": {
+      "invoice_id": "VARCHAR", "order_id": "VARCHAR", "customer_id": "VARCHAR",
+      "invoice_date": "DATETIME", "due_date": "DATETIME", "subtotal": "DECIMAL",
+      "tax_amount": "DECIMAL", "total_amount": "DECIMAL", "status": "VARCHAR",
+      "payment_method": "VARCHAR", "notes": "TEXT"
+    },
+    "primary_key": "invoice_id",
+    "natural_language_aliases": ["invoice", "bill", "receipt", "statement", "billing document", "charge"]
+  },
+  {
+    "entity_id": "TRANSACTION",
+    "database": "sales",
+    "name": "Transaction",
+    "description": "Financial payment or exchange event",
+    "table_name": "transactions",
+    "attributes": {
+      "transaction_id": "VARCHAR", "order_id": "VARCHAR", "customer_id": "VARCHAR",
+      "transaction_date": "DATETIME", "transaction_type": "VARCHAR",
+      "amount": "DECIMAL", "status": "VARCHAR", "payment_gateway": "VARCHAR"
+    },
+    "primary_key": "transaction_id",
+    "natural_language_aliases": ["transaction", "payment", "charge", "transfer", "settlement", "remittance"]
+  },
+  {
+    "entity_id": "SUPPLIER",
+    "database": "sales",
+    "name": "Supplier",
+    "description": "Company or individual that provides products for resale",
+    "table_name": "suppliers",
+    "attributes": {
+      "supplier_id": "VARCHAR", "name": "VARCHAR", "country": "VARCHAR",
+      "category": "VARCHAR", "contact_email": "VARCHAR",
+      "lead_time_days": "INTEGER", "rating": "DECIMAL", "is_active": "BOOLEAN"
+    },
+    "primary_key": "supplier_id",
+    "natural_language_aliases": ["supplier", "vendor", "manufacturer", "partner", "distributor", "wholesaler", "provider"]
+  },
+  {
+    "entity_id": "ORDER_ITEM",
+    "database": "sales",
+    "name": "Order Item",
+    "description": "Individual line item within a customer order",
+    "table_name": "order_items",
+    "attributes": {
+      "order_item_id": "VARCHAR", "order_id": "VARCHAR", "product_id": "VARCHAR",
+      "quantity": "INTEGER", "unit_price": "DECIMAL",
+      "discount_pct": "DECIMAL", "line_total": "DECIMAL"
+    },
+    "primary_key": "order_item_id",
+    "natural_language_aliases": ["order item", "line item", "order line", "product line", "item detail", "order detail"]
+  },
+  {
+    "entity_id": "RETURN",
+    "database": "sales",
+    "name": "Return",
+    "description": "Customer return of a previously purchased product",
+    "table_name": "returns",
+    "attributes": {
+      "return_id": "VARCHAR", "order_id": "VARCHAR", "customer_id": "VARCHAR",
+      "product_id": "VARCHAR", "return_date": "DATETIME",
+      "reason": "VARCHAR", "amount": "DECIMAL", "status": "VARCHAR"
+    },
+    "primary_key": "return_id",
+    "natural_language_aliases": ["return", "refund", "returned order", "product return", "reverse", "chargeback", "cancellation"]
+  },
+  {
+    "entity_id": "EMPLOYEE",
+    "database": "hr",
+    "name": "Employee",
+    "description": "Staff member employed by the organisation",
+    "table_name": "employees",
+    "attributes": {
+      "employee_id": "VARCHAR", "name": "VARCHAR", "email": "VARCHAR",
+      "department": "VARCHAR", "job_title": "VARCHAR", "region": "VARCHAR",
+      "hire_date": "DATETIME", "salary": "DECIMAL",
+      "performance_score": "DECIMAL", "manager_id": "VARCHAR", "is_active": "BOOLEAN"
+    },
+    "primary_key": "employee_id",
+    "natural_language_aliases": ["employee", "staff", "worker", "team member", "associate", "headcount", "person", "agent", "rep", "sales rep"]
+  },
+  {
+    "entity_id": "DEPARTMENT",
+    "database": "hr",
+    "name": "Department",
+    "description": "Organisational unit grouping employees by function",
+    "table_name": "departments",
+    "attributes": {
+      "dept_id": "VARCHAR", "name": "VARCHAR", "region": "VARCHAR",
+      "headcount": "INTEGER", "annual_budget": "DECIMAL", "manager_id": "VARCHAR"
+    },
+    "primary_key": "dept_id",
+    "natural_language_aliases": ["department", "team", "division", "unit", "group", "org unit", "business unit", "function"]
+  },
+  {
+    "entity_id": "SALARY",
+    "database": "hr",
+    "name": "Salary",
+    "description": "Annual compensation record for an employee",
+    "table_name": "salaries",
+    "attributes": {
+      "salary_id": "VARCHAR", "employee_id": "VARCHAR", "year": "INTEGER",
+      "base_salary": "DECIMAL", "bonus": "DECIMAL", "total_compensation": "DECIMAL"
+    },
+    "primary_key": "salary_id",
+    "natural_language_aliases": ["salary", "compensation", "pay", "remuneration", "wage", "earnings", "payroll"]
+  },
+  {
+    "entity_id": "PERFORMANCE_REVIEW",
+    "database": "hr",
+    "name": "Performance Review",
+    "description": "Quarterly or annual employee performance evaluation",
+    "table_name": "performance_reviews",
+    "attributes": {
+      "review_id": "VARCHAR", "employee_id": "VARCHAR", "quarter": "VARCHAR",
+      "year": "INTEGER", "score": "DECIMAL", "rating": "VARCHAR", "reviewer_id": "VARCHAR"
+    },
+    "primary_key": "review_id",
+    "natural_language_aliases": ["performance review", "appraisal", "evaluation", "assessment", "review", "performance score"]
+  },
+  {
+    "entity_id": "LEAVE_RECORD",
+    "database": "hr",
+    "name": "Leave Record",
+    "description": "Employee leave or absence record",
+    "table_name": "leave_records",
+    "attributes": {
+      "leave_id": "VARCHAR", "employee_id": "VARCHAR", "leave_type": "VARCHAR",
+      "start_date": "DATETIME", "end_date": "DATETIME", "days_taken": "INTEGER", "status": "VARCHAR"
+    },
+    "primary_key": "leave_id",
+    "natural_language_aliases": ["leave", "absence", "time off", "vacation", "sick leave", "annual leave", "PTO"]
+  },
+  {
+    "entity_id": "ACCOUNT",
+    "database": "finance",
+    "name": "Account",
+    "description": "Financial account in the general ledger",
+    "table_name": "accounts",
+    "attributes": {
+      "account_id": "VARCHAR", "name": "VARCHAR", "account_type": "VARCHAR",
+      "balance": "DECIMAL", "currency": "VARCHAR",
+      "department": "VARCHAR", "created_date": "DATETIME"
+    },
+    "primary_key": "account_id",
+    "natural_language_aliases": ["account", "ledger account", "GL account", "financial account", "cost centre"]
+  },
+  {
+    "entity_id": "BUDGET_ITEM",
+    "database": "finance",
+    "name": "Budget Item",
+    "description": "Allocated and actual spend per department/category per period",
+    "table_name": "budget_items",
+    "attributes": {
+      "budget_id": "VARCHAR", "department": "VARCHAR", "category": "VARCHAR",
+      "year": "INTEGER", "quarter": "VARCHAR",
+      "allocated": "DECIMAL", "spent": "DECIMAL", "variance": "DECIMAL"
+    },
+    "primary_key": "budget_id",
+    "natural_language_aliases": ["budget", "budget item", "allocation", "spend allocation", "budget line", "capex", "opex"]
+  },
+  {
+    "entity_id": "EXPENSE",
+    "database": "finance",
+    "name": "Expense",
+    "description": "Individual business expense incurred by a department",
+    "table_name": "expenses",
+    "attributes": {
+      "expense_id": "VARCHAR", "account_id": "VARCHAR", "department": "VARCHAR",
+      "category": "VARCHAR", "amount": "DECIMAL", "expense_date": "DATETIME",
+      "status": "VARCHAR", "description": "TEXT"
+    },
+    "primary_key": "expense_id",
+    "natural_language_aliases": ["expense", "cost", "spend", "expenditure", "outgoing", "charge", "disbursement"]
+  },
+  {
+    "entity_id": "FORECAST",
+    "database": "finance",
+    "name": "Forecast",
+    "description": "Predictive model output for a business metric over a period",
+    "table_name": "forecasts",
+    "attributes": {
+      "forecast_id": "VARCHAR", "metric": "VARCHAR", "period": "VARCHAR",
+      "predicted_value": "DECIMAL", "actual_value": "DECIMAL",
+      "model": "VARCHAR", "accuracy_pct": "DECIMAL"
+    },
+    "primary_key": "forecast_id",
+    "natural_language_aliases": ["forecast", "prediction", "projection", "estimate", "outlook", "guidance"]
+  },
+  {
+    "entity_id": "STOCK_LEVEL",
+    "database": "inventory",
+    "name": "Stock Level",
+    "description": "Current inventory quantity per product per warehouse",
+    "table_name": "stock_levels",
+    "attributes": {
+      "product_id": "VARCHAR", "warehouse": "VARCHAR", "quantity_on_hand": "INTEGER",
+      "quantity_reserved": "INTEGER", "quantity_available": "INTEGER", "last_count_date": "DATETIME"
+    },
+    "primary_key": "product_id",
+    "natural_language_aliases": ["stock level", "inventory level", "stock", "on-hand inventory", "available stock", "stock count"]
+  },
+  {
+    "entity_id": "REORDER",
+    "database": "inventory",
+    "name": "Reorder",
+    "description": "Replenishment purchase order for inventory restocking",
+    "table_name": "reorder_history",
+    "attributes": {
+      "reorder_id": "VARCHAR", "product_id": "VARCHAR", "reorder_date": "DATETIME",
+      "quantity_ordered": "INTEGER", "supplier_id": "VARCHAR",
+      "expected_delivery_date": "DATETIME", "actual_delivery_date": "DATETIME",
+      "cost_per_unit": "DECIMAL", "total_cost": "DECIMAL"
+    },
+    "primary_key": "reorder_id",
+    "natural_language_aliases": ["reorder", "replenishment", "purchase order", "PO", "restocking order", "supply order"]
+  },
+  {
+    "entity_id": "DAILY_METRIC",
+    "database": "analytics",
+    "name": "Daily Metric",
+    "description": "Aggregated daily business KPI snapshot",
+    "table_name": "daily_metrics",
+    "attributes": {
+      "date": "DATE", "total_orders": "INTEGER", "total_revenue": "DECIMAL",
+      "total_customers": "INTEGER", "avg_order_value": "DECIMAL",
+      "new_customers": "INTEGER", "returning_customers": "INTEGER", "conversion_rate": "DECIMAL"
+    },
+    "primary_key": "date",
+    "natural_language_aliases": ["daily metric", "daily KPI", "daily summary", "daily stats", "day summary", "daily report"]
+  },
+  {
+    "entity_id": "COHORT",
+    "database": "analytics",
+    "name": "Customer Cohort",
+    "description": "Group of customers acquired in the same period, tracked for retention",
+    "table_name": "cohort_metrics",
+    "attributes": {
+      "cohort_id": "VARCHAR", "cohort_date": "DATE", "cohort_size": "INTEGER",
+      "retention_week_1": "DECIMAL", "retention_week_4": "DECIMAL",
+      "retention_week_12": "DECIMAL", "avg_ltv": "DECIMAL", "churn_rate": "DECIMAL"
+    },
+    "primary_key": "cohort_id",
+    "natural_language_aliases": ["cohort", "customer cohort", "acquisition cohort", "retention cohort", "user cohort"]
+  },
+  {
+    "entity_id": "PRODUCT_ANALYTICS",
+    "database": "analytics",
+    "name": "Product Analytics",
+    "description": "Aggregated analytics per product: sales, views, ratings",
+    "table_name": "product_analytics",
+    "attributes": {
+      "product_id": "VARCHAR", "total_units_sold": "INTEGER", "total_revenue": "DECIMAL",
+      "avg_rating": "DECIMAL", "review_count": "INTEGER",
+      "return_rate": "DECIMAL", "views": "INTEGER", "page_conversion_rate": "DECIMAL"
+    },
+    "primary_key": "product_id",
+    "natural_language_aliases": ["product analytics", "product performance", "product stats", "product metrics", "product report"]
+  },
+  {
+    "entity_id": "CAMPAIGN",
+    "database": "sales",
+    "name": "Marketing Campaign",
+    "description": "A marketing initiative targeted at acquiring or retaining customers",
+    "table_name": "campaigns",
+    "attributes": {
+      "campaign_id": "VARCHAR", "name": "VARCHAR", "channel": "VARCHAR",
+      "start_date": "DATETIME", "end_date": "DATETIME", "budget": "DECIMAL",
+      "spend": "DECIMAL", "impressions": "INTEGER", "clicks": "INTEGER",
+      "conversions": "INTEGER", "revenue_attributed": "DECIMAL", "status": "VARCHAR"
+    },
+    "primary_key": "campaign_id",
+    "natural_language_aliases": ["campaign", "marketing campaign", "ad campaign", "promotion", "marketing initiative", "ad spend"]
+  },
+  {
+    "entity_id": "DISCOUNT",
+    "database": "sales",
+    "name": "Discount",
+    "description": "Price reduction applied to a product or order",
+    "table_name": "discounts",
+    "attributes": {
+      "discount_id": "VARCHAR", "code": "VARCHAR", "type": "VARCHAR",
+      "value": "DECIMAL", "min_order_amount": "DECIMAL",
+      "max_uses": "INTEGER", "uses": "INTEGER",
+      "valid_from": "DATETIME", "valid_to": "DATETIME", "is_active": "BOOLEAN"
+    },
+    "primary_key": "discount_id",
+    "natural_language_aliases": ["discount", "coupon", "promo code", "voucher", "deal", "offer", "reduction"]
+  },
+  {
+    "entity_id": "SHIPMENT",
+    "database": "inventory",
+    "name": "Shipment",
+    "description": "Physical delivery of one or more order items to a customer",
+    "table_name": "shipments",
+    "attributes": {
+      "shipment_id": "VARCHAR", "order_id": "VARCHAR", "carrier": "VARCHAR",
+      "tracking_number": "VARCHAR", "shipped_date": "DATETIME",
+      "estimated_delivery": "DATETIME", "actual_delivery": "DATETIME",
+      "status": "VARCHAR", "weight_kg": "DECIMAL", "cost": "DECIMAL"
+    },
+    "primary_key": "shipment_id",
+    "natural_language_aliases": ["shipment", "delivery", "shipping", "parcel", "package", "dispatch", "freight"]
+  },
+  {
+    "entity_id": "WAREHOUSE",
+    "database": "inventory",
+    "name": "Warehouse",
+    "description": "Physical storage and distribution facility",
+    "table_name": "warehouses",
+    "attributes": {
+      "warehouse_id": "VARCHAR", "name": "VARCHAR", "location": "VARCHAR",
+      "region": "VARCHAR", "capacity_sqft": "DECIMAL",
+      "utilisation_pct": "DECIMAL", "manager_id": "VARCHAR", "is_active": "BOOLEAN"
+    },
+    "primary_key": "warehouse_id",
+    "natural_language_aliases": ["warehouse", "fulfilment centre", "distribution centre", "storage facility", "depot", "DC"]
+  },
+  {
+    "entity_id": "LOYALTY_TIER",
+    "database": "sales",
+    "name": "Loyalty Tier",
+    "description": "Customer loyalty programme tier definition and benefit rules",
+    "table_name": "loyalty_tiers",
+    "attributes": {
+      "tier_id": "VARCHAR", "name": "VARCHAR", "min_spend": "DECIMAL",
+      "max_spend": "DECIMAL", "points_multiplier": "DECIMAL",
+      "discount_pct": "DECIMAL", "free_shipping": "BOOLEAN", "priority_support": "BOOLEAN"
+    },
+    "primary_key": "tier_id",
+    "natural_language_aliases": ["loyalty tier", "membership tier", "rewards tier", "loyalty level", "tier", "membership level"]
+  },
+  {
+    "entity_id": "SUBSCRIPTION",
+    "database": "sales",
+    "name": "Subscription",
+    "description": "Recurring billing relationship between a customer and the business",
+    "table_name": "subscriptions",
+    "attributes": {
+      "subscription_id": "VARCHAR", "customer_id": "VARCHAR", "plan_id": "VARCHAR",
+      "start_date": "DATETIME", "end_date": "DATETIME", "billing_cycle": "VARCHAR",
+      "mrr": "DECIMAL", "status": "VARCHAR", "auto_renew": "BOOLEAN"
+    },
+    "primary_key": "subscription_id",
+    "natural_language_aliases": ["subscription", "recurring plan", "plan", "membership", "recurring billing", "contract plan"]
+  },
+  {
+    "entity_id": "CONTRACT",
+    "database": "finance",
+    "name": "Contract",
+    "description": "Formal agreement with a customer or supplier specifying terms",
+    "table_name": "contracts",
+    "attributes": {
+      "contract_id": "VARCHAR", "entity_type": "VARCHAR", "entity_id": "VARCHAR",
+      "start_date": "DATETIME", "end_date": "DATETIME", "value": "DECIMAL",
+      "sla_tier": "VARCHAR", "status": "VARCHAR", "auto_renew": "BOOLEAN"
+    },
+    "primary_key": "contract_id",
+    "natural_language_aliases": ["contract", "agreement", "SLA", "service agreement", "deal", "master agreement", "MSA"]
+  },
+  {
+    "entity_id": "LEAD",
+    "database": "sales",
+    "name": "Lead",
+    "description": "Prospective customer in the sales pipeline",
+    "table_name": "leads",
+    "attributes": {
+      "lead_id": "VARCHAR", "name": "VARCHAR", "email": "VARCHAR",
+      "company": "VARCHAR", "source": "VARCHAR", "status": "VARCHAR",
+      "created_date": "DATETIME", "assigned_rep_id": "VARCHAR",
+      "estimated_value": "DECIMAL", "probability_pct": "DECIMAL"
+    },
+    "primary_key": "lead_id",
+    "natural_language_aliases": ["lead", "prospect", "opportunity lead", "potential customer", "pipeline lead", "qualified lead"]
+  },
+  {
+    "entity_id": "OPPORTUNITY",
+    "database": "sales",
+    "name": "Opportunity",
+    "description": "Sales opportunity progressing through the funnel",
+    "table_name": "opportunities",
+    "attributes": {
+      "opportunity_id": "VARCHAR", "lead_id": "VARCHAR", "account_id": "VARCHAR",
+      "stage": "VARCHAR", "estimated_close_date": "DATETIME",
+      "value": "DECIMAL", "probability_pct": "DECIMAL",
+      "assigned_rep_id": "VARCHAR", "won": "BOOLEAN", "lost_reason": "VARCHAR"
+    },
+    "primary_key": "opportunity_id",
+    "natural_language_aliases": ["opportunity", "deal", "sales opportunity", "pipeline deal", "CRM opportunity", "prospect deal"]
+  },
+  {
+    "entity_id": "SUPPORT_TICKET",
+    "database": "sales",
+    "name": "Support Ticket",
+    "description": "Customer service request or complaint",
+    "table_name": "support_tickets",
+    "attributes": {
+      "ticket_id": "VARCHAR", "customer_id": "VARCHAR", "subject": "VARCHAR",
+      "category": "VARCHAR", "priority": "VARCHAR", "status": "VARCHAR",
+      "created_date": "DATETIME", "resolved_date": "DATETIME",
+      "resolution_time_hrs": "DECIMAL", "satisfaction_score": "DECIMAL", "assigned_agent_id": "VARCHAR"
+    },
+    "primary_key": "ticket_id",
+    "natural_language_aliases": ["support ticket", "ticket", "help desk ticket", "customer issue", "complaint", "service request", "case"]
+  },
+  {
+    "entity_id": "REVIEW",
+    "database": "sales",
+    "name": "Product Review",
+    "description": "Customer review and rating of a product",
+    "table_name": "reviews",
+    "attributes": {
+      "review_id": "VARCHAR", "product_id": "VARCHAR", "customer_id": "VARCHAR",
+      "rating": "INTEGER", "title": "VARCHAR", "body": "TEXT",
+      "created_date": "DATETIME", "verified_purchase": "BOOLEAN", "helpful_votes": "INTEGER"
+    },
+    "primary_key": "review_id",
+    "natural_language_aliases": ["review", "rating", "product review", "customer review", "feedback", "testimonial", "star rating"]
+  },
+  {
+    "entity_id": "PAYMENT_METHOD",
+    "database": "sales",
+    "name": "Payment Method",
+    "description": "Customer stored payment instrument",
+    "table_name": "payment_methods",
+    "attributes": {
+      "payment_method_id": "VARCHAR", "customer_id": "VARCHAR", "type": "VARCHAR",
+      "last_four": "VARCHAR", "expiry": "VARCHAR",
+      "is_default": "BOOLEAN", "is_active": "BOOLEAN", "created_date": "DATETIME"
+    },
+    "primary_key": "payment_method_id",
+    "natural_language_aliases": ["payment method", "card", "bank account", "payment instrument", "stored card", "wallet"]
+  },
+  {
+    "entity_id": "AUDIT_LOG",
+    "database": "analytics",
+    "name": "Audit Log",
+    "description": "Immutable record of all system and user actions for compliance",
+    "table_name": "audit_logs",
+    "attributes": {
+      "log_id": "VARCHAR", "user_id": "VARCHAR", "action": "VARCHAR",
+      "entity_type": "VARCHAR", "entity_id": "VARCHAR",
+      "timestamp": "DATETIME", "ip_address": "VARCHAR", "metadata": "JSON"
+    },
+    "primary_key": "log_id",
+    "natural_language_aliases": ["audit log", "audit trail", "change log", "activity log", "event log", "system log"]
+  },
+  {
+    "entity_id": "PRICE_HISTORY",
+    "database": "analytics",
+    "name": "Price History",
+    "description": "Historical record of product price changes",
+    "table_name": "price_history",
+    "attributes": {
+      "price_id": "VARCHAR", "product_id": "VARCHAR", "old_price": "DECIMAL",
+      "new_price": "DECIMAL", "changed_date": "DATETIME",
+      "changed_by": "VARCHAR", "reason": "VARCHAR"
+    },
+    "primary_key": "price_id",
+    "natural_language_aliases": ["price history", "price change", "pricing history", "historical price", "price log"]
+  },
+  {
+    "entity_id": "NOTIFICATION",
+    "database": "analytics",
+    "name": "Notification",
+    "description": "System or marketing notification sent to a customer",
+    "table_name": "notifications",
+    "attributes": {
+      "notification_id": "VARCHAR", "customer_id": "VARCHAR", "channel": "VARCHAR",
+      "type": "VARCHAR", "subject": "VARCHAR", "sent_at": "DATETIME",
+      "opened_at": "DATETIME", "clicked_at": "DATETIME", "delivered": "BOOLEAN"
+    },
+    "primary_key": "notification_id",
+    "natural_language_aliases": ["notification", "email", "SMS", "push notification", "alert", "message", "communication"]
+  },
+  {
+    "entity_id": "TAG",
+    "database": "sales",
+    "name": "Tag",
+    "description": "Flexible label applied to products, customers, or orders for classification",
+    "table_name": "tags",
+    "attributes": {
+      "tag_id": "VARCHAR", "name": "VARCHAR", "entity_type": "VARCHAR",
+      "entity_id": "VARCHAR", "created_by": "VARCHAR", "created_date": "DATETIME"
+    },
+    "primary_key": "tag_id",
+    "natural_language_aliases": ["tag", "label", "category tag", "classification", "attribute", "marker"]
+  },
+  {
+    "entity_id": "REGION",
+    "database": "analytics",
+    "name": "Region",
+    "description": "Geographic sales region with associated tax and currency rules",
+    "table_name": "regions",
+    "attributes": {
+      "region_id": "VARCHAR", "name": "VARCHAR", "currency": "VARCHAR",
+      "tax_rate": "DECIMAL", "shipping_zone": "VARCHAR",
+      "manager_id": "VARCHAR", "is_active": "BOOLEAN"
+    },
+    "primary_key": "region_id",
+    "natural_language_aliases": ["region", "territory", "area", "zone", "market", "geography", "location", "sales territory"]
+  },
+  {
+    "entity_id": "CATEGORY",
+    "database": "analytics",
+    "name": "Product Category",
+    "description": "Hierarchical product classification group",
+    "table_name": "categories",
+    "attributes": {
+      "category_id": "VARCHAR", "name": "VARCHAR", "parent_category_id": "VARCHAR",
+      "description": "TEXT", "is_active": "BOOLEAN", "product_count": "INTEGER"
+    },
+    "primary_key": "category_id",
+    "natural_language_aliases": ["category", "product category", "department", "product group", "classification", "segment"]
+  },
+  {
+    "entity_id": "SESSION",
+    "database": "analytics",
+    "name": "Web Session",
+    "description": "A single web browsing session by a visitor",
+    "table_name": "sessions",
+    "attributes": {
+      "session_id": "VARCHAR", "customer_id": "VARCHAR", "started_at": "DATETIME",
+      "ended_at": "DATETIME", "duration_seconds": "INTEGER", "pages_viewed": "INTEGER",
+      "device_type": "VARCHAR", "channel": "VARCHAR", "converted": "BOOLEAN"
+    },
+    "primary_key": "session_id",
+    "natural_language_aliases": ["session", "visit", "web session", "user session", "browsing session", "site visit"]
+  },
+  {
+    "entity_id": "AFFILIATE",
+    "database": "sales",
+    "name": "Affiliate",
+    "description": "External partner who drives traffic and earns commission on referred sales",
+    "table_name": "affiliates",
+    "attributes": {
+      "affiliate_id": "VARCHAR", "name": "VARCHAR", "email": "VARCHAR",
+      "commission_rate": "DECIMAL", "total_referrals": "INTEGER",
+      "total_earnings": "DECIMAL", "joined_date": "DATETIME", "status": "VARCHAR"
+    },
+    "primary_key": "affiliate_id",
+    "natural_language_aliases": ["affiliate", "partner", "referral partner", "reseller", "channel partner", "influencer"]
+  },
+  {
+    "entity_id": "ASSET",
+    "database": "finance",
+    "name": "Asset",
+    "description": "Company-owned physical or digital asset tracked on the balance sheet",
+    "table_name": "assets",
+    "attributes": {
+      "asset_id": "VARCHAR", "name": "VARCHAR", "type": "VARCHAR",
+      "purchase_date": "DATETIME", "purchase_value": "DECIMAL",
+      "current_value": "DECIMAL", "depreciation_rate": "DECIMAL",
+      "department": "VARCHAR", "is_active": "BOOLEAN"
+    },
+    "primary_key": "asset_id",
+    "natural_language_aliases": ["asset", "fixed asset", "equipment", "capital asset", "property", "infrastructure"]
+  },
+  {
+    "entity_id": "VENDOR_INVOICE",
+    "database": "finance",
+    "name": "Vendor Invoice",
+    "description": "Invoice received from a supplier for goods or services purchased",
+    "table_name": "vendor_invoices",
+    "attributes": {
+      "vendor_invoice_id": "VARCHAR", "supplier_id": "VARCHAR", "amount": "DECIMAL",
+      "currency": "VARCHAR", "invoice_date": "DATETIME", "due_date": "DATETIME",
+      "status": "VARCHAR", "po_number": "VARCHAR", "category": "VARCHAR"
+    },
+    "primary_key": "vendor_invoice_id",
+    "natural_language_aliases": ["vendor invoice", "supplier invoice", "AP invoice", "accounts payable", "vendor bill", "purchase invoice"]
+  },
+  {
+    "entity_id": "CREDIT_NOTE",
+    "database": "finance",
+    "name": "Credit Note",
+    "description": "Formal document reducing the amount owed by a customer",
+    "table_name": "credit_notes",
+    "attributes": {
+      "credit_note_id": "VARCHAR", "customer_id": "VARCHAR", "original_invoice_id": "VARCHAR",
+      "amount": "DECIMAL", "reason": "VARCHAR",
+      "issued_date": "DATETIME", "expiry_date": "DATETIME", "status": "VARCHAR"
+    },
+    "primary_key": "credit_note_id",
+    "natural_language_aliases": ["credit note", "credit", "store credit", "credit memo", "refund credit", "account credit"]
+  },
+  {
+    "entity_id": "KPI",
+    "database": "finance",
+    "name": "KPI",
+    "description": "Key Performance Indicator tracking organisational goal progress",
+    "table_name": "kpis",
+    "attributes": {
+      "kpi_id": "VARCHAR", "name": "VARCHAR", "category": "VARCHAR",
+      "target": "DECIMAL", "actual": "DECIMAL", "unit": "VARCHAR",
+      "period": "VARCHAR", "owner": "VARCHAR", "status": "VARCHAR"
+    },
+    "primary_key": "kpi_id",
+    "natural_language_aliases": ["KPI", "key performance indicator", "metric", "goal", "target", "OKR", "objective"]
+  },
+  {
+    "entity_id": "PAYMENT_PLAN",
+    "database": "finance",
+    "name": "Payment Plan",
+    "description": "Instalment or deferred payment arrangement for a customer",
+    "table_name": "payment_plans",
+    "attributes": {
+      "plan_id": "VARCHAR", "customer_id": "VARCHAR", "order_id": "VARCHAR",
+      "total_amount": "DECIMAL", "instalments": "INTEGER",
+      "instalment_amount": "DECIMAL", "start_date": "DATETIME", "status": "VARCHAR"
+    },
+    "primary_key": "plan_id",
+    "natural_language_aliases": ["payment plan", "instalment plan", "deferred payment", "BNPL", "buy now pay later", "financing"]
+  },
+  {
+    "entity_id": "QUOTE",
+    "database": "sales",
+    "name": "Sales Quote",
+    "description": "Formal price quotation sent to a prospective customer",
+    "table_name": "quotes",
+    "attributes": {
+      "quote_id": "VARCHAR", "lead_id": "VARCHAR", "rep_id": "VARCHAR",
+      "total_value": "DECIMAL", "discount_pct": "DECIMAL",
+      "valid_until": "DATETIME", "created_date": "DATETIME", "status": "VARCHAR"
+    },
+    "primary_key": "quote_id",
+    "natural_language_aliases": ["quote", "sales quote", "proposal", "price quote", "RFQ response", "estimate", "bid"]
+  },
+  {
+    "entity_id": "LOYALTY_POINTS",
+    "database": "sales",
+    "name": "Loyalty Points",
+    "description": "Points balance and transaction history for customer loyalty programme",
+    "table_name": "loyalty_points",
+    "attributes": {
+      "points_id": "VARCHAR", "customer_id": "VARCHAR", "event_type": "VARCHAR",
+      "points_delta": "INTEGER", "balance_after": "INTEGER",
+      "order_id": "VARCHAR", "created_date": "DATETIME", "expiry_date": "DATETIME"
+    },
+    "primary_key": "points_id",
+    "natural_language_aliases": ["loyalty points", "reward points", "points", "rewards", "points balance", "redeemed points"]
+  }
+]

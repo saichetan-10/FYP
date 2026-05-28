@@ -3,7 +3,7 @@ Business Ontology: Formal Knowledge Representation Layer
 
 Encodes:
 - Entity definitions with attributes
-- Metric specifications with formulas and valid ranges  
+- Metric specifications with formulas and valid ranges
 - Temporal constraints (refresh frequency, retention)
 - Join cardinality rules for multi-entity queries
 - Access control and data governance rules
@@ -13,6 +13,7 @@ and ChromaDB for vector similarity search over business rules.
 """
 
 import json
+import os
 from typing import Dict, List, Any, Optional, Set, Tuple
 from dataclasses import dataclass, field, asdict
 from datetime import datetime
@@ -45,7 +46,8 @@ class EntityDefinition:
     attributes: Dict[str, str]  # attribute_name -> data_type
     primary_key: str
     natural_language_aliases: List[str] = field(default_factory=list)
-    
+    source_database: str = "sales"
+
     def to_dict(self) -> Dict[str, Any]:
         return asdict(self)
 
@@ -137,10 +139,108 @@ class BusinessOntology:
                 pass  # ChromaDB not fully configured
         
         self._populate_default_ontology()
-    
+
+    # ------------------------------------------------------------------
+    # Ontology loading
+    # ------------------------------------------------------------------
+
     def _populate_default_ontology(self) -> None:
-        """Populate with default business ontology."""
-        
+        """Load ontology from JSON files if available, else hardcoded fallback."""
+        from src.config import config
+        files = [
+            config.ontology.entities_file,
+            config.ontology.metrics_file,
+            config.ontology.rules_file,
+        ]
+        if all(os.path.exists(p) for p in files):
+            try:
+                self._load_from_json_files(
+                    config.ontology.entities_file,
+                    config.ontology.metrics_file,
+                    config.ontology.rules_file,
+                )
+                return
+            except Exception as exc:
+                print(f"[ontology] JSON load failed ({exc}), falling back to hardcoded defaults")
+        self._load_hardcoded_defaults()
+
+    def _load_from_json_files(
+        self, entities_file: str, metrics_file: str, rules_file: str
+    ) -> None:
+        """Load entities, metrics, and rules from JSON files."""
+        with open(entities_file, "r") as f:
+            entities_data = json.load(f)
+        for e in entities_data:
+            self.add_entity(EntityDefinition(
+                entity_id=e["entity_id"],
+                name=e["name"],
+                description=e.get("description", ""),
+                table_name=e["table_name"],
+                attributes=e.get("attributes", {}),
+                primary_key=e.get("primary_key", "id"),
+                natural_language_aliases=e.get("natural_language_aliases", []),
+                source_database=e.get("database", "sales"),
+            ))
+
+        with open(metrics_file, "r") as f:
+            metrics_data = json.load(f)
+        for m in metrics_data:
+            vr = m.get("valid_range", [0, 1e9])
+            self.add_metric(MetricDefinition(
+                metric_id=m["metric_id"],
+                name=m["name"],
+                description=m.get("description", ""),
+                formula=m.get("formula", ""),
+                valid_range=(float(vr[0]), float(vr[1])) if vr else (0, 1e9),
+                unit=m.get("unit", ""),
+                refresh_frequency=m.get("refresh_frequency", "DAILY"),
+                requires_entities=m.get("requires_entities", []),
+                natural_language_aliases=m.get("natural_language_aliases", []),
+                aggregation_type=m.get("aggregation_type", "SUM"),
+            ))
+
+        with open(rules_file, "r") as f:
+            rules_data = json.load(f)
+        for r in rules_data:
+            self.add_constraint(ConstraintRule(
+                rule_id=r["rule_id"],
+                name=r["name"],
+                description=r.get("description", ""),
+                rule_type=r.get("rule_type", r.get("category", "GENERAL")),
+                condition=r.get("condition", ""),
+                entities_affected=r.get("entities_affected", []),
+                severity=r.get("severity", "INFO"),
+            ))
+
+        # Always add core join rules (they depend on entity structure)
+        self._add_default_join_rules()
+
+    def _add_default_join_rules(self) -> None:
+        """Register well-known join relationships between core entities."""
+        defaults = [
+            JoinRule("CUSTOMER", "ORDER", "customer_id", "customer_id", "1:N",
+                     "customers.customer_id = orders.customer_id"),
+            JoinRule("ORDER", "INVOICE", "order_id", "order_id", "1:N",
+                     "orders.order_id = invoices.order_id"),
+            JoinRule("ORDER", "TRANSACTION", "order_id", "order_id", "1:N",
+                     "orders.order_id = transactions.order_id"),
+            JoinRule("ORDER", "ORDER_ITEM", "order_id", "order_id", "1:N",
+                     "orders.order_id = order_items.order_id"),
+            JoinRule("ORDER_ITEM", "PRODUCT", "product_id", "product_id", "N:1",
+                     "order_items.product_id = products.product_id"),
+            JoinRule("PRODUCT", "SUPPLIER", "supplier_id", "supplier_id", "N:1",
+                     "products.supplier_id = suppliers.supplier_id"),
+            JoinRule("ORDER", "RETURN", "order_id", "order_id", "1:N",
+                     "orders.order_id = returns.order_id"),
+            JoinRule("EMPLOYEE", "DEPARTMENT", "department_id", "department_id", "N:1",
+                     "employees.department_id = departments.department_id"),
+        ]
+        for j in defaults:
+            if j.from_entity in self.entities or j.to_entity in self.entities:
+                self.add_join_rule(j)
+
+    def _load_hardcoded_defaults(self) -> None:
+        """Hardcoded fallback ontology (original implementation)."""
         # Define entities
         self.add_entity(EntityDefinition(
             entity_id="CUSTOMER",

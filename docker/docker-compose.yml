@@ -61,6 +61,10 @@ services:
       DB_PASSWORD: nlpassword
       DB_NAME: nlretrieval_sales
       LOG_LEVEL: INFO
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+      ONTOLOGY_ENTITIES: /app/data/ontology/entities.json
+      ONTOLOGY_METRICS: /app/data/ontology/metrics.json
+      ONTOLOGY_RULES: /app/data/ontology/rules.json
     ports:
       - "8000:8000"
     depends_on:
