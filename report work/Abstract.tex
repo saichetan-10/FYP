@@ -3,20 +3,14 @@
 \begin{tikzpicture}[remember picture, overlay]
   \draw[line width = 4pt] ($(current page.north west) + (0.75in,-0.75in)$) rectangle ($(current page.south east) + (-0.75in,0.75in)$);
 \end{tikzpicture}
-Abstract is essentially a complete overview or the Synopsis of the project in one page, should be precise, concise, and clear. It has to be written in past tense as the work is already completed. If abbreviations or acronyms need to be included in the abstract, the first time it is used, it should be written out in the full form and put the abbreviation in brackets. e.g. Magnetic Resonance Imaging (MRI). The abstract may have about 3 paragraphs covering the outline of the work as below:
 
-\textbf{First para:} Brief introduction about the project which should include background, Areas/type of applications, market size (if available) and hence the importance of the domain. Key developments in the domain, unresolved issues or/and new emerging opportunities in the domain areas and hence the problem or the issue that is proposed to be addressed in the project or the objective. If it is theory or simulation based add all the existing theory/algorithms names and what is it that the project is based on, their essentially advantage or drawbacks in brief and hence the motivation to work on the project.
+{\centering\Large\bfseries Abstract\par}
+\vspace{1em}
 
-\textbf{Second Para:} Objectives, scope, Methodology of your project including the key theory, design tools or software tools or / and the experimental tools that will be used, the key specifications including constrains or boundary conditions or approximations or assumptions that have been considered for the work. The sequence in which the work has been carried out.
+Structured Query Language (SQL) remains the dominant mechanism for retrieving data from relational databases, yet writing correct SQL requires a level of technical expertise that most business users do not possess. Natural Language Interface to Database (NLIDB) systems address this barrier by translating everyday questions into executable SQL, but even modern neural approaches produce results that silently diverge from the user's intended query — a phenomenon termed \textit{semantic drift}. Existing Text-to-SQL benchmarks measure accuracy against a reference query, an evaluation strategy that is inapplicable in production where no reference is available. This project was motivated by the absence of any principled, reference-free mechanism for detecting and correcting such silent failures in deployed systems.
 
-\textbf{Third para:} Key findings, results or outcome of the work including experimental data of the out come or / and percentage in terms of working efficiency of the developed product or system.
+A five-agent pipeline was designed and implemented — comprising an IntentParserAgent, OntologyMapperAgent, ConstraintValidatorAgent, ExecutionPlannerAgent, and ResultVerifierAgent — orchestrated by a critic-loop controller that iterates up to five times until a composite semantic drift score falls below a convergence threshold of 0.15. The drift score $D = 0.4(1{-}a_i) + 0.3(1{-}a_c) + 0.3(1{-}a_p)$ combines intent alignment ($a_i$), constraint adherence ($a_c$), and Z-score-based result plausibility ($a_p$). A business ontology built on NetworkX encoded eleven entities, twelve aggregate metrics, and nine constraint rules for an e-commerce domain. The system was exposed through an eight-endpoint FastAPI REST API and a Streamlit monitoring dashboard, with dual-dialect SQL generation targeting SQLite and PostgreSQL. Synthetic data at scale — 50,000 customers, 300,000 orders, and 800,000 order items — provided a realistic evaluation substrate.
 
-In brief the Abstract should be
-\begin{itemize}
-	\item Complete — it covers all aspects of the project
-	\item Concise — it contains no excess wordiness or unnecessary information.
-	\item Clear — it is readable, well organized, and not too jargon-laden.
-	\item Cohesive — it flows smoothly between the parts.
-\end{itemize}
+Evaluation across ten representative business intelligence queries showed that nine of ten queries converged below the drift threshold, with a mean drift of 0.113 across the full critic loop compared to 0.187 for the single-pass baseline — a reduction of 39.6\%. Six queries converged on the first pipeline pass; the mean iteration count was 1.9. The most frequent source of elevated drift was ambiguous metric interpretation by the intent parser, which the critic loop resolved in two to three iterations by feeding component-specific feedback back to the extraction stage. These results demonstrated that a composite, reference-free drift metric, coupled with iterative query refinement, can materially reduce the rate of silent semantic failures in Text-to-SQL systems without requiring ground-truth annotations.
 
 \pagebreak
