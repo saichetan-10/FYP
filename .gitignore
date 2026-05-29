@@ -22,8 +22,7 @@ __pycache__/
 *.swp
 *.swo
 
-# SQLite databases
-*.db
+# SQLite databases (all tracked via Git LFS or directly)
 
 # Logs (regenerated at runtime)
 logs/*.log

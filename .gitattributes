@@ -1,1 +1,2 @@
 *.mov filter=lfs diff=lfs merge=lfs -text
+sales.db filter=lfs diff=lfs merge=lfs -text
