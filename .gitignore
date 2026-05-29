@@ -11,7 +11,10 @@
 dist/
 build/
 venv/
+venv_new/
+.venv_mac/
 env/
+__pycache__/
 
 # IDEs
 .idea/
@@ -19,14 +22,18 @@ env/
 *.swp
 *.swo
 
-# SQLite databases — sales.db excluded (273MB, exceeds GitHub 100MB limit)
-sales.db
+# SQLite databases
+*.db
+
+# Logs (regenerated at runtime)
+logs/*.log
+logs/*.json
+logs/*.sty
 
 # macOS
 .DS_Store
 
 # LaTeX build artifacts
 *.aux
-*.log
 *.out
 *.synctex.gz
